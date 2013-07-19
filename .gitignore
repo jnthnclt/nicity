@@ -2,6 +2,9 @@
 build/
 .classpath
 .settings
+*.jar
+*.war
+*.ear
 *.class
 *.jar
 *.war
