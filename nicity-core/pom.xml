@@ -19,7 +19,7 @@
         <connection>https://github.com/jnthnclt/nicity-core.git</connection>
     </scm>
 
-    <groupId>com.jonathancolt</groupId>
+    <groupId>com.jonathancolt.nicity</groupId>
     <artifactId>nicity-core</artifactId>
     <packaging>jar</packaging>
     <version>1.4</version>
@@ -36,7 +36,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <developers>
         <developer>
             <name>jonathan.colt</name>
