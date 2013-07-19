@@ -1,6 +1,12 @@
+.m2/
+build/
+.classpath
+.settings
 *.class
-
-# Package Files #
 *.jar
 *.war
 *.ear
+src/
+target/
+nbactions.xml
+
