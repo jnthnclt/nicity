@@ -25,14 +25,15 @@
     </properties>
 
     <scm>
-        <url>https://github.com/jnthnclt/nicity-core.git</url>
-        <connection>https://github.com/jnthnclt/nicity-core.git</connection>
+        <url>https://github.com/jnthnclt/nicity.git</url>
+        <connection>https://github.com/jnthnclt/nicity.git</connection>
     </scm>
 
     <modules>
         <module>nicity-core</module>
         <module>nicity-asynchro</module>
         <module>nicity-io</module>
+        <module>nicity-view</module>
     </modules>
 
 
@@ -45,6 +46,26 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.jonathancolt.nicity</groupId>
+                <artifactId>nicity-asynchro</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jonathancolt.nicity</groupId>
+                <artifactId>nicity-io</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jonathancolt.nicity</groupId>
+                <artifactId>nicity-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jonathancolt.nicity</groupId>
+                <artifactId>nicity-view</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.8.1</version>
@@ -54,20 +75,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -101,6 +108,30 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>sign</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <reporting>
         <plugins>

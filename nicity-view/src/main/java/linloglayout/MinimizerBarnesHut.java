@@ -1,22 +1,3 @@
-/*
- * MinimizerBarnesHut.java.java
- *
- * Created on 01-02-2010 10:50:13 AM
- *
- * Copyright 2010 Jonathan Colt
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package linloglayout;
 
 //Copyright (C) 2005 Andreas Noack
@@ -33,15 +14,15 @@ package linloglayout;
 //
 //You should have received a copy of the GNU Lesser General Public
 //License along with this library; if not, write to the Free Software
-//Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA 
+//Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 /**
  * Minimizer for the LinLog energy model and its generalizations,
- * for computing graph layouts.  Based on the Barnes-Hut algorithm.  
+ * for computing graph layouts.  Based on the Barnes-Hut algorithm.
  * For more information about the LinLog energy model, see
  *   "Energy-Based Clustering of Graphs with Nonuniform Degrees",
  *   Proceedings of the 13th International Symposium on Graph Drawing (GD 2005).
- * Available at 
+ * Available at
  *   <a href="http://www.informatik.tu-cottbus.de/~an/">
  *   <code>www.informatik.tu-cottbus.de/~an/</code></a>.
  *
@@ -57,24 +38,24 @@ public class MinimizerBarnesHut {
 
 	/** For each node, list of its attraction weights. */
 	private final float attrWeights[][];
-	/** For each node, indexes of the nodes in its attraction weight list. */ 
+	/** For each node, indexes of the nodes in its attraction weight list. */
 	private final int attrIndexes[][];
 	/** Exponent of the Euclidean distance in the attraction energy */
 	private float attrExponent;
-	
+
     /** Position of the barycenter of the nodes. */
     private final float[] baryCenter = new float[3];
     /** Factor for the gravitation energy = attraction to the barycenter.
         Set to 0.0f for no gravitation. */
     private final float gravFactor;
-	
+
 	/** Repulsion of each node. */
 	private final float repuWeights[];
 	/** Current factor for repulsion energy.  Changes through pulsing. */
 	private float repuFactor;
 	/** Exponent of the Euclidean distance in the repulsion energy */
 	private float repuExponent;
-    
+
 
 	/**
 	 * Initializes the attributes.
@@ -84,13 +65,13 @@ public class MinimizerBarnesHut {
 	 *   Is not copied and not modified by this class.
 	 * @param attrWeights  list of edge weights for each node.
      *   <code>attrWeights[i][k]</code> is the weight of the <code>k</code>th
-     *   outgoing edge of node <code>i</code>.  
-     *   Omit edges with weight 0.0f (i.e. non-edges).  
+     *   outgoing edge of node <code>i</code>.
+     *   Omit edges with weight 0.0f (i.e. non-edges).
      *   For unweighted graphs use weight 1.0f for all edges.
-	 *   All elements must not be negative.   
-	 *   Weights must be symmetric, i.e. the weight  
+	 *   All elements must not be negative.
+	 *   Weights must be symmetric, i.e. the weight
 	 *   from node <code>i</code> to node <code>j</code> must be equal to
-	 *   the weight from node <code>j</code> to node <code>i</code>. 
+	 *   the weight from node <code>j</code> to node <code>i</code>.
 	 *   Is not copied and not modified by this class.
 	 * @param repuWeights  repulsion vector, specifies the repulsion of each node.
 	 *   It is recommended to use so-called "edge-repulsion", which means
@@ -98,37 +79,37 @@ public class MinimizerBarnesHut {
 	 *   in <code>attrWeights[i]</code> (for all <code>i</code>).
 	 *   The repulsion between the nodes with the indexes <code>i</code>
 	 *   and <code>j</code> is proportional to <code>repuWeights[i]*repuWeights[j]</code>.
-	 *   All elements must not be negative.   
+	 *   All elements must not be negative.
 	 *   Is not copied and not modified by this class.
 	 * @param attrExponent exponent of the distance in the attraction energy.
 	 *   Is 1.0f in the LinLog model (which is used for computing clusters,
-	 *   i.e. dense subgraphs), 
-	 *   and 3.0f in standard energy model of Fruchterman and Reingold.  
+	 *   i.e. dense subgraphs),
+	 *   and 3.0f in standard energy model of Fruchterman and Reingold.
 	 *   Must be greater than 0.0f.
 	 * @param repuExponent exponent of the distance in the repulsion energy.
-	 *   Exception: The value 0.0f corresponds to logarithmic repulsion.  
+	 *   Exception: The value 0.0f corresponds to logarithmic repulsion.
 	 *   Is 0.0f in both the LinLog and the Fruchterman-Reingold energy model.
 	 *   Negative values are permitted.
      * @param gravFactor  factor for the gravitation energy.
      *   Gravitation attracts each node to the barycenter of all nodes,
      *   to prevent distances between unconnected graph components
-     *   from approaching infinity.  
+     *   from approaching infinity.
      *   Typical values are 0.0f if the graph is guaranteed to be connected,
      *   and values that are significantly smaller than the <code>attrWeights</code>
      *   (e.g. 0.01f for unweighted graphs) otherwise.
-	 * @param pos  position matrix.  
+	 * @param pos  position matrix.
 	 *   Is not copied and serves as input and output of the method
 	 *   <code>minimizeEnergy</code>.  For each node index <code>i</code>,
-	 *   <code>pos[i]</code> must be a <code>float[3]</code> 
-	 *   and specifies the position of the <code>i</code>th node in 3D space. 
-	 *   If the input is two-dimensional (i.e. <code>pos[i][2] == 0.0f</code> 
+	 *   <code>pos[i]</code> must be a <code>float[3]</code>
+	 *   and specifies the position of the <code>i</code>th node in 3D space.
+	 *   If the input is two-dimensional (i.e. <code>pos[i][2] == 0.0f</code>
 	 *   for all <code>i</code>), the output is also two-dimensional.
          *   Random initial positions are appropriate.
-         * @param pinnedPos  
+         * @param pinnedPos
 	 */
-	public MinimizerBarnesHut( 
-			final int[][] attrIndexes, final float[][] attrWeights, final float[] repuWeights, 
-			final float attrExponent, final float repuExponent, final float gravFactor, 
+	public MinimizerBarnesHut(
+			final int[][] attrIndexes, final float[][] attrWeights, final float[] repuWeights,
+			final float attrExponent, final float repuExponent, final float gravFactor,
 			final float[][] pos,final boolean[] pinnedPos) {
 		nodeNr = attrWeights.length;
 		this.attrWeights = attrWeights;
@@ -142,7 +123,7 @@ public class MinimizerBarnesHut {
 	}
 
         /**
-         * 
+         *
          * @param _v
          */
         public void attrExponent(float _v) {
@@ -150,20 +131,20 @@ public class MinimizerBarnesHut {
     }
 
         /**
-         * 
+         *
          * @param _v
          */
         public void repuExponent(float _v) {
         repuExponent = _v;
     }
 
-  
+
 
 	/**
 	 * Iteratively minimizes energy using the Barnes-Hut algorithm.
-	 * Starts from the positions in the attribute <code>pos</code>, 
+	 * Starts from the positions in the attribute <code>pos</code>,
 	 * and stores the computed positions in <code>pos</code>.
-     * @param _ 
+     * @param _
      * @param nrIterations  number of iterations. Choose appropriate values
 	 *   by observing the convergence of energy.  A typical value is 100.
 	 */
@@ -198,7 +179,7 @@ public class MinimizerBarnesHut {
 				attrExponent = finalAttrExponent;
 				repuExponent = finalRepuExponent;
 				if (step <= 0.6f*nrIterations) {
-					// use energy model with few local minima 
+					// use energy model with few local minima
 					attrExponent += 1.1f * (1.0f - finalRepuExponent);
 					repuExponent += 0.9f * (1.0f - finalRepuExponent);
 				} else if (step <= 0.9f*nrIterations) {
@@ -233,8 +214,8 @@ public class MinimizerBarnesHut {
                         continue;
                     }
 					pos[i][0] = oldPos[0] + bestDir[0] * multiple;
-					pos[i][1] = oldPos[1] + bestDir[1] * multiple; 
-					pos[i][2] = oldPos[2] + bestDir[2] * multiple; 
+					pos[i][1] = oldPos[1] + bestDir[1] * multiple;
+					pos[i][2] = oldPos[2] + bestDir[2] * multiple;
 					float curEnergy = getEnergy(i, octTree);
 					if (curEnergy < bestEnergy) {
 						bestEnergy = curEnergy;
@@ -242,15 +223,15 @@ public class MinimizerBarnesHut {
 					}
 				}
 
-				for (int multiple = 64; 
-					 multiple <= 128 && bestMultiple == multiple/2; 
+				for (int multiple = 64;
+					 multiple <= 128 && bestMultiple == multiple/2;
 					 multiple *= 2) {
 					if (pinnedPos != null && pinnedPos[i]) {
                         continue;
                     }
 					pos[i][0] = oldPos[0] + bestDir[0] * multiple;
-					pos[i][1] = oldPos[1] + bestDir[1] * multiple; 
-					pos[i][2] = oldPos[2] + bestDir[2] * multiple; 
+					pos[i][1] = oldPos[1] + bestDir[1] * multiple;
+					pos[i][2] = oldPos[2] + bestDir[2] * multiple;
 					float curEnergy = getEnergy(i, octTree);
 					if (curEnergy < bestEnergy) {
 						bestEnergy = curEnergy;
@@ -262,7 +243,7 @@ public class MinimizerBarnesHut {
                     continue;
                 }
                 pos[i][0] = oldPos[0] + bestDir[0] * bestMultiple;
-				pos[i][1] = oldPos[1] + bestDir[1] * bestMultiple; 
+				pos[i][1] = oldPos[1] + bestDir[1] * bestMultiple;
 				pos[i][2] = oldPos[2] + bestDir[2] * bestMultiple;
 				if (bestMultiple > 0) {
 					octTree.moveNode(oldPos, pos[i], repuWeights[i]);
@@ -270,18 +251,18 @@ public class MinimizerBarnesHut {
 				energySum += bestEnergy;
 			}
 
-            
+
 			/*
-			System.out.println("iteration " + step 
+			System.out.println("iteration " + step
 			  + "   energy " + energySum
 			  + "   repulsion " + repuExponent);*/
 		}
 	}
 
 	/**
-	 * Chooses a factor for the repulsion energy such that the maximum distances 
-	 * in the resulting layout approximate (very) roughly the square root 
-	 * of the sum of the repuWeights.  This is appropriate when each graph node 
+	 * Chooses a factor for the repulsion energy such that the maximum distances
+	 * in the resulting layout approximate (very) roughly the square root
+	 * of the sum of the repuWeights.  This is appropriate when each graph node
 	 * is visualized as a geometric object whose area is the node's repuWeight.
 	 */
     private float computeRepuFactor() {
@@ -315,10 +296,10 @@ public class MinimizerBarnesHut {
     }
 
 
-	/** 
+	/**
 	 * Returns the repulsion energy between the node with the specified index
 	 * and the nodes in the octtree.
-	 * 
+	 *
 	 * @param index  index of the node
 	 * @param tree   octtree containing repulsing nodes
 	 * @return repulsion energy between the node with the specified index
@@ -328,7 +309,7 @@ public class MinimizerBarnesHut {
 		if (tree == null || tree.index == index || index >= repuWeights.length) {
 			return 0.0f;
 		}
-		
+
 		float dist = getDist(pos[index], tree.position);
 		if (tree.index < 0 && dist < 2.0f * tree.width()) {
 			float energy = 0.0f;
@@ -336,8 +317,8 @@ public class MinimizerBarnesHut {
 				energy += getRepulsionEnergy(index, tree.children[i]);
 			}
 			return energy;
-		} 
-		
+		}
+
 		if (repuExponent == 0.0f) {
 			return -repuFactor * repuWeights[index] * tree.weight * (float)Math.log(dist);
 		} else {
@@ -346,7 +327,7 @@ public class MinimizerBarnesHut {
 		}
 	}
 
-	/** 
+	/**
 	 * Returns the attraction energy of the node with the specified index.
 	 * @param index  index of the node
 	 * @return attraction energy of the node with the specified index
@@ -361,8 +342,8 @@ public class MinimizerBarnesHut {
 		}
 		return energy;
 	}
-	
-	/** 
+
+	/**
 	 * Returns the gravitation energy of the node with the specified index.
 	 * @param index  index of the node
 	 * @return gravitation energy of the node with the specified index
@@ -384,7 +365,7 @@ public class MinimizerBarnesHut {
 
 
 	/**
-	 * Computes the direction of the repulsion force from the tree 
+	 * Computes the direction of the repulsion force from the tree
 	 *     on the specified node.
 	 * @param  index index of the node
 	 * @param  tree  repulsing octtree
@@ -396,7 +377,7 @@ public class MinimizerBarnesHut {
 		if (tree == null || tree.index == index || repuWeights[index] == 0.0f) {
 			return 0.0f;
 		}
-		
+
 		float dist = getDist(pos[index], tree.position);
 		if (tree.index < 0 && dist < 2.0f * tree.width()) {
 			float dir2 = 0.0f;
@@ -404,17 +385,17 @@ public class MinimizerBarnesHut {
 				dir2 += addRepulsionDir(index, tree.children[i], dir);
 			}
 			return dir2;
-		} 
+		}
 
 		if (dist != 0.0) {
-			float tmp =   repuFactor * repuWeights[index] * tree.weight 
+			float tmp =   repuFactor * repuWeights[index] * tree.weight
 					    * (float)Math.pow(dist, repuExponent-2);
 			for (int j = 0; j < 3; j++) {
 				dir[j] -= (tree.position[j] - pos[index][j]) * tmp;
 			}
 			return tmp * Math.abs(repuExponent-1);
 		}
-		
+
 		return 0.0f;
 	}
 
@@ -459,7 +440,7 @@ public class MinimizerBarnesHut {
         }
 		return tmp * Math.abs(attrExponent-1);
 	}
-		
+
 	/**
 	 * Computes the direction of the total force acting on the specified node.
 	 * @param  index   index of a node
@@ -476,7 +457,7 @@ public class MinimizerBarnesHut {
 		if (dir2 != 0.0f) {
 			// normalize force vector with second derivation of energy
 			dir[0] /= dir2; dir[1] /= dir2; dir[2] /= dir2;
-         
+
 			// ensure that the length of dir is at most 1/8
 			// of the maximum Euclidean distance between nodes
 			float length = (float)Math.sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2]);
@@ -487,7 +468,7 @@ public class MinimizerBarnesHut {
 		} else {
 			dir[0] = 0.0f; dir[1] = 0.0f; dir[2] = 0.0f;
 		}
-    }    
+    }
 
 
 	/**
@@ -506,7 +487,7 @@ public class MinimizerBarnesHut {
 				maxPos[j] = Math.max(pos[i][j], maxPos[j]);
 			}
 		}
-		
+
 		// add nodes with non-zero repuWeight to the octtree
 		OctTree result = null;
 		for (int i = 0; i < repuWeights.length; i++) {
@@ -522,7 +503,7 @@ public class MinimizerBarnesHut {
 		return result;
 	}
 
-    /** 
+    /**
      * Computes the position of the barycenter of all nodes
      * and stores it in the attribute <code>baryCenter</code>.
      */
@@ -543,7 +524,7 @@ public class MinimizerBarnesHut {
     }
 
 	/**
-	 * Computes and outputs some statistics. 
+	 * Computes and outputs some statistics.
 	 */
 	private void printStatistics(final OctTree octTree) {
 		float attrSum = 0.0f;
@@ -558,9 +539,9 @@ public class MinimizerBarnesHut {
 		for (int i = 0; i < nodeNr; i++) {
             meanAttrEnergy += getAttractionEnergy(i);
         }
-		meanAttrEnergy = (float)Math.pow(meanAttrEnergy * attrExponent / attrSum, 1.0f / attrExponent); 
+		meanAttrEnergy = (float)Math.pow(meanAttrEnergy * attrExponent / attrSum, 1.0f / attrExponent);
 		System.out.println("Weighted mean of attraction energy: " + meanAttrEnergy);
-		
+
 		float repuSum = 0.0f, repuSquareSum = 0.0f;
 		for (int i = 0; i < repuWeights.length; i++) {
 			repuSum += repuWeights[i];
@@ -573,12 +554,12 @@ public class MinimizerBarnesHut {
 		for (int i = 0; i < nodeNr; i++) {
             meanRepuEnergy += getRepulsionEnergy(i, octTree);
         }
-		meanRepuEnergy /= repuFactor; 
-		meanRepuEnergy = (repuExponent == 0.0f) 
+		meanRepuEnergy /= repuFactor;
+		meanRepuEnergy = (repuExponent == 0.0f)
 			? (float)Math.exp(-meanRepuEnergy / repuSum)
-			: (float)Math.pow(-meanRepuEnergy * repuExponent / repuSum, 1.0f / repuExponent); 
+			: (float)Math.pow(-meanRepuEnergy * repuExponent / repuSum, 1.0f / repuExponent);
 		System.out.println("Weighted mean of repulsion energy: " + meanRepuEnergy);
-		
+
 		System.out.println("Mean attraction / mean repulsion: " + meanAttrEnergy / meanRepuEnergy);
 	}
 
@@ -586,7 +567,7 @@ public class MinimizerBarnesHut {
 	/**
 	 * Octtree for graph nodes with positions in 3D space.
 	 * Contains all graph nodes that are located in a given cuboid in 3D space.
-	 * 
+	 *
 	 * @author Andreas Noack
 	 */
 	static class OctTree {
@@ -602,10 +583,10 @@ public class MinimizerBarnesHut {
 		protected float[] minPos;
 		/** Maximum coordinates of the cuboid in each of the 3 dimensions. */
 		protected float[] maxPos;
-		
+
 		/**
 		 * Creates an octtree containing exactly one graph node.
-		 *  
+		 *
 		 * @param index    unique index of the graph node
 		 * @param position position of the graph node
 		 * @param weight   weight of the graph node
@@ -619,10 +600,10 @@ public class MinimizerBarnesHut {
 			this.minPos = minPos;
 			this.maxPos = maxPos;
 		}
-		
+
 		/**
 		 * Adds a graph node to the octtree.
-		 * 
+		 *
 		 * @param nodeIndex  unique nonnegative index of the graph node
 		 * @param nodePos    position of the graph node
 		 * @param nodeWeight weight of the graph node
@@ -635,7 +616,7 @@ public class MinimizerBarnesHut {
 				System.out.println("Tree node position: " + position[0] + " " + position[1] + " " + position[2] + ".");
 				return;
 			}
-			
+
 			if (index >= 0) {
 				addNode2(index, position, weight, depth);
 				index = -1;
@@ -645,14 +626,14 @@ public class MinimizerBarnesHut {
 				position[i] = (position[i]*weight + nodePos[i]*nodeWeight) / (weight+nodeWeight);
 			}
 			weight += nodeWeight;
-			
+
 			addNode2(nodeIndex, nodePos, nodeWeight, depth);
 		}
-		
+
 		/**
-		 * Adds a graph node to the octtree, 
+		 * Adds a graph node to the octtree,
 		 * without changing the position and weight of the root.
-		 * 
+		 *
 		 * @param nodeIndex  unique index of the graph node
 		 * @param nodePos    position of the graph node
 		 * @param nodeWeight weight of the graph node
@@ -665,9 +646,9 @@ public class MinimizerBarnesHut {
 					childIndex += 1 << i;
 				}
 			}
-			
+
 			if (children[childIndex] == null) {
-				float[] newMinPos = new float[3]; 			
+				float[] newMinPos = new float[3];
 				float[] newMaxPos = new float[3];
 				for (int i = 0; i < 3; i++) {
 					if ((childIndex & 1<<i) == 0) {
@@ -683,11 +664,11 @@ public class MinimizerBarnesHut {
 				children[childIndex].addNode(nodeIndex, nodePos, nodeWeight, depth+1);
 			}
 		}
-		
+
 		/**
-		 * Updates the positions of the octtree nodes 
+		 * Updates the positions of the octtree nodes
 		 * when the position of a graph node has changed.
-		 * 
+		 *
 		 * @param oldPos     previous position of the graph node
 		 * @param newPos     new position of the graph node
 		 * @param nodeWeight weight of the graph node
@@ -696,7 +677,7 @@ public class MinimizerBarnesHut {
 			for (int i = 0; i < 3; i++) {
 				position[i] += (newPos[i]-oldPos[i]) * (nodeWeight/weight);
 			}
-			
+
 			int childIndex = 0;
 			for (int i = 0; i < 3; i++) {
 				if (oldPos[i] > (minPos[i]+maxPos[i])/2) {
@@ -710,7 +691,7 @@ public class MinimizerBarnesHut {
 
 		/**
 		 * Returns the maximum extension of the octtree.
-		 * 
+		 *
 		 * @return maximum over all dimensions of the extension of the octtree
 		 */
 		public float width() {
