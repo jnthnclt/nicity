@@ -10,5 +10,6 @@
 
     <modules>
         <module>nicity-core</module>
+        <module>nicity-asynchro</module>
     </modules>
 </project>
