@@ -9,6 +9,7 @@
 
     <groupId>com.jonathancolt.nicity</groupId>
     <artifactId>nicity-asynchro</artifactId>
+    <name>nicity-asynchro</name>
     <packaging>jar</packaging>
 
     <dependencies>

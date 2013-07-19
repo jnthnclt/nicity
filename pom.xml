@@ -32,6 +32,7 @@
     <modules>
         <module>nicity-core</module>
         <module>nicity-asynchro</module>
+        <module>nicity-io</module>
     </modules>
 
 
