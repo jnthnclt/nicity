@@ -9,7 +9,6 @@ build/
 *.jar
 *.war
 *.ear
-src/
 target/
 nbactions.xml
 
