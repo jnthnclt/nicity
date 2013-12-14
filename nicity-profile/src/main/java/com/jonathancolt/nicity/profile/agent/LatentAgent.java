@@ -1,18 +1,3 @@
-/*
- * Copyright 2013 jonathan.colt.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.jonathancolt.nicity.profile.agent;
 
 /*
@@ -56,11 +41,15 @@ import javassist.NotFoundException;
  */
 public class LatentAgent implements ClassFileTransformer {
 
-    private String[] interfacePrefixs;
+    private String[] includePackages;
+    private String[] excludePackages;
 
     public static void premain(String agentArgs, Instrumentation instrumentation) {
         String[] host_clusterName_serviceName_version_AndPackages = agentArgs.split(":");
-        new LatentAgent(host_clusterName_serviceName_version_AndPackages[4], instrumentation);
+        String includePackages = (host_clusterName_serviceName_version_AndPackages.length > 4) ? host_clusterName_serviceName_version_AndPackages[4] : "";
+        String excludePackages = (host_clusterName_serviceName_version_AndPackages.length > 5) ? host_clusterName_serviceName_version_AndPackages[5] : "";
+
+        new LatentAgent(includePackages,excludePackages, instrumentation);
         new LatentHttpPump(host_clusterName_serviceName_version_AndPackages[0],
                 host_clusterName_serviceName_version_AndPackages[1],
                 host_clusterName_serviceName_version_AndPackages[2],
@@ -68,12 +57,10 @@ public class LatentAgent implements ClassFileTransformer {
 
     }
 
-    public LatentAgent(String agentArgs, Instrumentation instrumentation) {
-        if (agentArgs == null) {
-            agentArgs = null;
-        }
+    public LatentAgent(String includePackages, String excludePackages, Instrumentation instrumentation) {
         instrumentation.addTransformer(this);
-        interfacePrefixs = agentArgs.split(",");
+        this.includePackages = includePackages.split(",");
+        this.excludePackages = excludePackages.split(",");
     }
 
     @Override
@@ -173,10 +160,17 @@ public class LatentAgent implements ClassFileTransformer {
         boolean inControlOfInterfaces = false;
         for (int i = 0; i < interfaces.length; i++) {
             boolean inControlOfInterface = false;
-            for (String interfacePrefix : interfacePrefixs) {
+            NEXT_PACKAGE: for (String includable : includePackages) {
                 String interfaceName = interfaces[i].getName();
                 if (!interfaceName.contains("com.jonathancolt.nicity.profile")) {
-                    if (interfaceName.contains(interfacePrefix)) {
+                    if (interfaceName.contains(includable)) {
+                        for(String excludable:excludePackages) {
+                            if (interfaceName.contains(excludable)) {
+                                continue NEXT_PACKAGE;
+                            }
+                        }
+
+                        
                         System.out.println("In control of interface:" + interfaces[i].getName());
                         inControlOfInterface = true;
                     }
