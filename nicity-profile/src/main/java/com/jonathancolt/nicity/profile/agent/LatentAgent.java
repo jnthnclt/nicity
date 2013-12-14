@@ -15,6 +15,27 @@
  */
 package com.jonathancolt.nicity.profile.agent;
 
+/*
+ * #%L
+ * nicity-profile
+ * %%
+ * Copyright (C) 2013 Jonathan Colt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.lang.instrument.Instrumentation;
@@ -62,7 +83,7 @@ public class LatentAgent implements ClassFileTransformer {
             ProtectionDomain protectionDomain,
             byte[] classfileBuffer)
             throws IllegalClassFormatException {
-        if (className.contains("colt.nicity.performance.latent")) { // keep from instrumenting ourself
+        if (className.contains("com.jonathancolt.nicity.profile")) { // keep from instrumenting ourself
             return classfileBuffer;
         }
 
@@ -87,7 +108,7 @@ public class LatentAgent implements ClassFileTransformer {
                 if (!isDevelopControlledInterface(interfaces)) {
                     return classfileBuffer;
                 }
-                
+
                 CtMethod[] methods = cc.getMethods();
                 instrumentClass(cc);
                 for (int k = 0; k < methods.length; k++) { // do not instrument inherited methods:
@@ -99,7 +120,7 @@ public class LatentAgent implements ClassFileTransformer {
             }
             return cc.toBytecode();
 
-        } catch (Exception exc) {
+        } catch (NotFoundException | CannotCompileException | IOException exc) {
             System.err.println(exc.getClass().getName() + ": " + exc.getMessage());
             exc.printStackTrace();
             return classfileBuffer;
@@ -107,10 +128,10 @@ public class LatentAgent implements ClassFileTransformer {
     }
 
     private void instrumentClass(CtClass cc) throws NotFoundException, CannotCompileException {
-        CtClass latencyClass = ClassPool.getDefault().get("colt.nicity.performance.latent.Latency");
+        CtClass latencyClass = ClassPool.getDefault().get("com.jonathancolt.nicity.profile.latent.Latency");
         CtField latency = new CtField(latencyClass, "latency", cc);
         latency.setModifiers(Modifier.STATIC | Modifier.PRIVATE);
-        cc.addField(latency, "colt.nicity.performance.latent.Latency.singleton()");
+        cc.addField(latency, "com.jonathancolt.nicity.profile.latent.Latency.singleton()");
         System.out.println("Instrumenting Class:"+cc.getName());
     }
 
@@ -122,7 +143,7 @@ public class LatentAgent implements ClassFileTransformer {
         System.out.println("Instrumenting Method:" + interfaceName + " " + methods[k].getLongName());
 
         String fname = "latent" + k;
-        CtClass latentClass = ClassPool.getDefault().get("colt.nicity.performance.latent.Latent");
+        CtClass latentClass = ClassPool.getDefault().get("com.jonathancolt.nicity.profile.latent.Latent");
         CtField f = new CtField(latentClass, fname, cc);
         f.setModifiers(Modifier.STATIC | Modifier.PRIVATE);
         cc.addField(f);
@@ -154,7 +175,7 @@ public class LatentAgent implements ClassFileTransformer {
             boolean inControlOfInterface = false;
             for (String interfacePrefix : interfacePrefixs) {
                 String interfaceName = interfaces[i].getName();
-                if (!interfaceName.contains("colt.nicity.performance.latent")) {
+                if (!interfaceName.contains("com.jonathancolt.nicity.profile")) {
                     if (interfaceName.contains(interfacePrefix)) {
                         System.out.println("In control of interface:" + interfaces[i].getName());
                         inControlOfInterface = true;

@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Built-By: jonathan
+Build-Jdk: 1.7.0_25
+Premain-Class: com.jonathancolt.nicity.profile.agent.LatentAgent
+Created-By: Apache Maven 3.0.5
+Archiver-Version: Plexus Archiver
+

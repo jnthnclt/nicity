@@ -1,13 +1,26 @@
 package com.jonathancolt.nicity.profile.server;
 
-import com.jonathancolt.nicity.profile.model.ServicesCallDepthStack;
-import com.jonathancolt.nicity.profile.server.endpoints.PerfService;
-import com.jonathancolt.nicity.profile.visualize.Heat;
-import com.jonathancolt.nicity.profile.visualize.NameUtils;
-import com.jonathancolt.nicity.profile.visualize.VCallDepthStack;
-import com.jonathancolt.nicity.profile.visualize.VLatency;
-import com.jonathancolt.nicity.view.core.UV;
-import com.jonathancolt.nicity.view.core.ViewColor;
+/*
+ * #%L
+ * nicity-profile-server
+ * %%
+ * Copyright (C) 2013 Jonathan Colt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import com.jonathancolt.nicity.profile.server.endpoints.ProfileService;
 import com.sun.jersey.api.container.filter.PostReplaceFilter;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
@@ -21,21 +34,12 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 
-/**
- * Hello world!
- *
- */
 public class PerfServerJetty {
 
     public static void main(String[] args) throws Exception {
-        Server server = new Server(8080);
+        Server server = new Server(9090);
 
-        ViewColor.onBlack();
         final ServicesCallDepthStack callDepthStack = new ServicesCallDepthStack();
-        NameUtils nameUtils = new NameUtils();
-
-        final VCallDepthStack vCallDepthStack = new VCallDepthStack(nameUtils, callDepthStack, new Heat(), 1000, 800);
-        UV.exitFrame(new VLatency(vCallDepthStack), "Latent Server");
 
         FilterHolder filterHolder = new FilterHolder(CrossOriginFilter.class);
         filterHolder.setInitParameter("allowedOrigins", "*");
@@ -44,7 +48,7 @@ public class PerfServerJetty {
         ServletContextHandler root = new ServletContextHandler(server, "/", ServletContextHandler.NO_SESSIONS);
         //root.setErrorHandler(new SegmentsErrorHandler(objectMapper, new Log4jLoggerServerErrorRecorder(objectMapper)));
 
-        final String JERSEY_RESOURCE_PACKAGES = "colt.nicity.performance.server.endpoints";
+        final String JERSEY_RESOURCE_PACKAGES = "com.jonathancolt.nicity.profile.server.endpoints";
         Map<String, Object> jerseyProps = new HashMap<String, Object>() {
             {
                 put(PackagesResourceConfig.PROPERTY_PACKAGES, JERSEY_RESOURCE_PACKAGES);
@@ -56,11 +60,10 @@ public class PerfServerJetty {
         jerseyResourceConfig.getSingletons().add(new SingletonTypeInjectableProvider<javax.ws.rs.core.Context, AtomicBoolean>(AtomicBoolean.class, new AtomicBoolean(false)) {
         });
         jerseyResourceConfig.getSingletons().add(
-            new SingletonTypeInjectableProvider<javax.ws.rs.core.Context, PerfService>(PerfService.class, new PerfService(callDepthStack)) {
+            new SingletonTypeInjectableProvider<javax.ws.rs.core.Context, ProfileService>(ProfileService.class, new ProfileService(callDepthStack)) {
         });
 
         ServletHolder servletHolder = new ServletHolder(new ServletContainer(jerseyResourceConfig));
-
         root.addServlet(servletHolder, "/*");
 
         server.start();
