@@ -117,7 +117,7 @@ public class LatentAgent implements ClassFileTransformer {
     private void instrumentClass(CtClass cc) throws NotFoundException, CannotCompileException {
         CtClass latencyClass = ClassPool.getDefault().get("com.jonathancolt.nicity.profile.latent.Latency");
         CtField latency = new CtField(latencyClass, "latency", cc);
-        latency.setModifiers(Modifier.STATIC | Modifier.PRIVATE);
+        latency.setModifiers(Modifier.STATIC | Modifier.PRIVATE | Modifier.FINAL);
         cc.addField(latency, "com.jonathancolt.nicity.profile.latent.Latency.singleton()");
         System.out.println("Instrumenting Class:"+cc.getName());
     }
@@ -170,7 +170,7 @@ public class LatentAgent implements ClassFileTransformer {
                             }
                         }
 
-                        
+
                         System.out.println("In control of interface:" + interfaces[i].getName());
                         inControlOfInterface = true;
                     }

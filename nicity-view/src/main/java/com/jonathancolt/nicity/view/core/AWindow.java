@@ -28,9 +28,9 @@ package com.jonathancolt.nicity.view.core;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +38,6 @@ package com.jonathancolt.nicity.view.core;
  * limitations under the License.
  * #L%
  */
-
 import com.jonathancolt.nicity.core.collection.CSet;
 import com.jonathancolt.nicity.core.lang.ICallback;
 import com.jonathancolt.nicity.core.lang.IOut;
@@ -61,6 +60,10 @@ import com.jonathancolt.nicity.view.interfaces.IPeerView;
 import com.jonathancolt.nicity.view.interfaces.IPlacer;
 import com.jonathancolt.nicity.view.interfaces.IRootView;
 import com.jonathancolt.nicity.view.interfaces.IView;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  *
@@ -441,31 +444,40 @@ public class AWindow extends AViewer implements IEventClient, IRootView, IDropVi
     public static CSet popups = new CSet();
 
     @Override
-    public void processEvent(IOut _, PrimativeEvent event) {
-        if (popups.getCount() > 0) {// hacky
-            if (event.family == ADK.cComponent) {
-                if (event.id == ADK.cFocusGained) {
-                    for (Object p : popups.getAll(Object.class)) {
-                        if (event.source == ((AWindowPopup) p).referencePeer()) {
-                            continue;
+    public void processEvent(final IOut _out, final PrimativeEvent event) {
+        singleThreadAllEvents(new Callable<Void>() {
+
+            @Override
+            public Void call() throws Exception {
+                if (popups.getCount() > 0) {// hacky
+                    if (event.family == ADK.cComponent) {
+                        if (event.id == ADK.cFocusGained) {
+                            for (Object p : popups.getAll(Object.class)) {
+                                if (event.source == ((AWindowPopup) p).referencePeer()) {
+                                    continue;
+                                }
+                                ((AWindow) p).dispose();
+                            }
                         }
-                        ((AWindow) p).dispose();
+                    } else if (event.family == ADK.cComponent) {
+                        if (event.id == ADK.cWindowActivated) {
+                            for (Object p : popups.getAll(Object.class)) {
+                                if (event.source == ((AWindowPopup) p).referencePeer()) {
+                                    continue;
+                                }
+                                ((AWindow) p).dispose();
+                            }
+                        }
                     }
                 }
-            } else if (event.family == ADK.cComponent) {
-                if (event.id == ADK.cWindowActivated) {
-                    for (Object p : popups.getAll(Object.class)) {
-                        if (event.source == ((AWindowPopup) p).referencePeer()) {
-                            continue;
-                        }
-                        ((AWindow) p).dispose();
-                    }
+                if (input != null) {
+                    input.handleEvent(_out, event);
                 }
+
+                return null;
             }
-        }
-        if (input != null) {
-            input.handleEvent(_, event);
-        }
+        });
+
     }
 
     @Override
@@ -570,9 +582,10 @@ public class AWindow extends AViewer implements IEventClient, IRootView, IDropVi
     }
 
     @Override
-    public void setFocusedView(long _who, IView view) {
+    public void setFocusedView(final long _who, final IView view) {
         if (input != null) {
-            input.setFocusedView(_who, view);
+                    input.setFocusedView(_who, view);
+
         }
     }
 
@@ -582,21 +595,40 @@ public class AWindow extends AViewer implements IEventClient, IRootView, IDropVi
     }
 
     @Override
-    public void setHardFocusedView(long _who, IView view) {
+    public void setHardFocusedView(final long _who, final IView view) {
         if (input != null) {
-            input.setHardFocusedView(_who, view);
+
+                    input.setHardFocusedView(_who, view);
         }
     }
 
     @Override
-    public void setMouseWheelFocus(long _who, IView _mouseWheelFocus) {
+    public void setMouseWheelFocus(final long _who, final IView _mouseWheelFocus) {
         if (input != null) {
-            input.setMouseWheelFocus(_who, _mouseWheelFocus);
+                    input.setMouseWheelFocus(_who, _mouseWheelFocus);
+
         }
     }
 
     @Override
     public void frame(IView _view, Object _title) {
         UV.frame(_view, _title);
+    }
+
+    private ExecutorService eventThread = Executors.newFixedThreadPool(1);
+
+    synchronized private <T> T singleThreadAllEvents(Callable<T> callable) {
+
+        try {
+            Future<T> submit = eventThread.submit(callable);
+            T got = submit.get(); // blocking call
+            return got;
+        } catch (InterruptedException ie) {
+            Thread.interrupted();
+            return null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 }
